@@ -21,6 +21,14 @@
             padding-left: 10px;
             color: #9999FF;
         }
+
+        ol li a.fa.fa-trash {
+            float: right;
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 
@@ -29,8 +37,19 @@
     
 </audio>
 
-<button add>Add</button>
-<button repeat>Repeat</button>
+<div class>
+    <button class="ink-button" add>Add <i class="fa fa-music"></i></button>
+    <button class="ink-button" repeat>Repeat <i class="fa fa-repeat"></i></button>
+    <button class="ink-button" save>
+        Save
+        <i class="fa fa-floppy-o"></i>
+    </button>
+    <button class="ink-button" save onclick="document.getElementById('add-playlist').click();">
+        Open
+        <i class="fa fa-cloud-upload"></i>
+        <input type="file" id="add-playlist" class="hidden"/>
+    </button>
+</div>
 
 <ol>
     
@@ -65,8 +84,12 @@
 
     var addButton = document.querySelector('[add]');
     var repeatButton = document.querySelector('[repeat]');
+    var save = document.querySelector('[save]');
     var player = document.querySelector('audio');
     var playList = document.querySelector('ol');
+    var load = document.getElementById('add-playlist');
+    var fr = new FileReader;
+
 
     function shuffle(a) {
         var j, x, i;
@@ -84,15 +107,29 @@
         for (var i = 0; i < list.length; i++) {
             var li = document.createElement('li');
             
-            li.innerHTML = list[i].name;
+            li.innerHTML = list[i].name + ' <a class="fa fa-trash"></a>';
             li.setAttribute('list-index', i);
 
             playList.appendChild(li);
 
             li.addEventListener('click', function() {
                 playSong(this.getAttribute('list-index'));
-            })
+            });
+            li.children[0].addEventListener('click', function() {
+                removeSong(this.parentElement.getAttribute('list-index'));
+            });
         }
+    }
+
+    function removeSong(index) {
+        if (index >= 0) {
+            list.splice(index,1);
+        } else {
+            return;
+        }
+        renderList();
+        updateListState();
+        localStorage.setItem(itemName, JSON.stringify(list));
     }
 
     function playSong(listIndex, playingAt) {
@@ -127,6 +164,14 @@
         updateListState();
     }
 
+    function rehashList()
+    {
+        for (var i = list.length - 1; i >= 0; i--) {
+            list[i].hash = btoa(list[i].name);
+        }
+        localStorage.setItem(itemName, JSON.stringify(list));
+    }
+
     function updateListState()
     {
         var allChildren = document.querySelectorAll('li')
@@ -146,7 +191,15 @@
         var loc = prompt('song http address ? ');
         var name = prompt('name ? ');
 
-        list.push({name: name, loc: loc});
+        if (!loc) {
+            return;
+        }
+
+        if (!name) {
+            name = loc;
+        }
+
+        list.push({name: name, loc: loc, hash: btoa(name)});
         localStorage.setItem(itemName, JSON.stringify(list));
 
         if (player.src == '') {
@@ -160,6 +213,24 @@
         updateListState();
     });
 
+    save.addEventListener('click', function() {
+        var content = btoa(JSON.stringify(list));
+        window.open('data:text/csv;charset=utf-8,' + escape(content));
+    });
+
+    load.addEventListener('change', function() {
+        fr.readAsText(load.files[0]);
+    });
+
+    fr.onload = function() {
+        content = JSON.parse(atob(fr.result));
+        backup = list;
+        list = content;
+        index = 0;
+        playSong(0);
+    }
+
+    rehashList();
     renderList();
     if (meta.index >=0) {
         index = meta.index;
