@@ -1,0 +1,118 @@
+<style>
+    li.active {
+        border-bottom: 1px solid #6495ED;
+        color: #6495ED;
+    }
+
+    ol {
+        width: 300px;
+    }
+</style>
+
+<audio controls>
+    
+</audio>
+
+<button add>Add</button>
+<button shuffle>Shuffle</button>
+
+<ol>
+    
+</ol>
+
+<script>
+    var itemName = "mp3::songs";
+
+    var list = localStorage.getItem(itemName) || "[]";
+    var list = JSON.parse(list);
+    var index = 0;
+    var started = false;
+
+    var addButton = document.querySelector('[add]');
+    var shuffleList = document.querySelector('[shuffle]');
+    var player = document.querySelector('audio');
+    var playList = document.querySelector('ol');
+
+    function shuffle(a) {
+        var j, x, i;
+        for (i = a.length; i; i -= 1) {
+            j = Math.floor(Math.random() * i);
+            x = a[i - 1];
+            a[i - 1] = a[j];
+            a[j] = x;
+        }
+    }
+
+    function renderList()
+    {
+        playList.innerHTML = '';
+        for (var i = 0; i < list.length; i++) {
+            var li = document.createElement('li');
+            
+            li.innerHTML = list[i].name;
+            li.setAttribute('list-index', i);
+
+            playList.appendChild(li);
+
+            li.addEventListener('click', function() {
+                playSong(this.getAttribute('list-index'));
+            })
+        }
+    }
+
+    function playSong(listIndex) {
+        if (listIndex >= 0) {
+            index = listIndex;
+        } else {
+            index++;
+        }
+
+        if (!list[index]) {
+            index = 0;
+        }
+        player.src = list[index].loc;
+        player.play();
+
+        updateListState();
+    }
+
+    function updateListState()
+    {
+        var allChildren = document.querySelectorAll('li')
+
+        for (var j = 0; j < allChildren.length; j++) {
+            if (index == j) {
+                allChildren[j].classList.add('active');
+            } else {
+                allChildren[j].classList.remove('active');
+            }
+        }
+    }
+
+    player.addEventListener('ended', playSong);
+
+    addButton.addEventListener('click', function() {
+        var loc = prompt('song http address ? ');
+        var name = prompt('name ? ');
+
+        list.push({name: name, loc: loc});
+        localStorage.setItem(itemName, JSON.stringify(list));
+
+        if (player.src == '') {
+            playSong(0);
+        }
+
+    });
+
+    shuffleList.addEventListener('click', function() {
+        shuffle(list);
+        renderList();
+        updateListState();
+    });
+
+    if (list.length) {
+        // render list
+        renderList();
+        playSong(0);
+    }
+</script>
