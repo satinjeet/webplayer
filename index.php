@@ -228,6 +228,8 @@
         list = content;
         index = 0;
         playSong(0);
+        renderList();
+        updateListState();
     }
 
     rehashList();
