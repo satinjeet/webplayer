@@ -1,20 +1,36 @@
-<style>
-    li.active {
-        border-bottom: 1px solid #6495ED;
-        color: #6495ED;
-    }
+<head>
+    <link rel="stylesheet" type="text/css" href="bower_components/ink/dist/css/ink.min.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/ink/dist/css/font-awesome.min.css">
+    <style>
+        li.active {
+            border-bottom: 1px solid #6495ED;
+            color: #6495ED;
+        }
 
-    ol {
-        width: 300px;
-    }
-</style>
+        ol {
+            width: 300px;
+        }
+
+        ol li {
+            transition: all 0.3s ease;
+            -webkit-transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        ol li:hover {
+            cursor: pointer;
+            padding-left: 10px;
+            color: #9999FF;
+        }
+    </style>
+</head>
+
 
 <audio controls>
     
 </audio>
 
 <button add>Add</button>
-<button shuffle>Shuffle</button>
+<button repeat>Repeat</button>
 
 <ol>
     
@@ -22,14 +38,28 @@
 
 <script>
     var itemName = "mp3::songs";
+    var metaName = "mp3::songs::meta";
+    var repeatModes = {
+        one: 'mode_one',
+        all: 'mode_all',
+        off: 'mode_off',
+    }
+
+    var repeatLike = repeatModes.all;
 
     var list = localStorage.getItem(itemName) || "[]";
+    var meta = localStorage.getItem(metaName) || JSON.stringify({
+        playingAt: 0,
+        index: 0,
+    });
+
     var list = JSON.parse(list);
+    var meta = JSON.parse(meta);
     var index = 0;
     var started = false;
 
     var addButton = document.querySelector('[add]');
-    var shuffleList = document.querySelector('[shuffle]');
+    var repeatButton = document.querySelector('[repeat]');
     var player = document.querySelector('audio');
     var playList = document.querySelector('ol');
 
@@ -60,17 +90,33 @@
         }
     }
 
-    function playSong(listIndex) {
+    function playSong(listIndex, playingAt) {
+
+        if (playingAt == null) {
+            playingAt = 0;
+        }
+
         if (listIndex >= 0) {
             index = listIndex;
         } else {
-            index++;
+            if (repeatLike == repeatModes.one) {
+                // dont do anything.
+                // 
+            } else if (repeatLike == repeatModes.all) {
+                index++;
+                if (!list[index]) {
+                    index = 0;
+                }
+            } else {
+                index++;
+                if (!list[index]) {
+                    return;
+                }
+            }
         }
 
-        if (!list[index]) {
-            index = 0;
-        }
         player.src = list[index].loc;
+        player.currentTime = playingAt;
         player.play();
 
         updateListState();
@@ -104,15 +150,25 @@
 
     });
 
-    shuffleList.addEventListener('click', function() {
-        shuffle(list);
+    repeatButton.addEventListener('click', function() {
         renderList();
         updateListState();
     });
 
-    if (list.length) {
+    if (meta.index >=0) {
+        index = meta.index;
+        playSong(meta.index, meta.playingAt);
+
+    } else if (list.length) {
         // render list
         renderList();
         playSong(0);
     }
+
+    setInterval(function() {
+        meta.playingAt = player.currentTime;
+        meta.index = index;
+
+        localStorage.setItem(metaName, JSON.stringify(meta));
+    }, 1000);
 </script>
