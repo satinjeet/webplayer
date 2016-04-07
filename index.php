@@ -44,17 +44,22 @@
         all: 'mode_all',
         off: 'mode_off',
     }
+    var meta;
 
     var repeatLike = repeatModes.all;
 
     var list = localStorage.getItem(itemName) || "[]";
-    var meta = localStorage.getItem(metaName) || JSON.stringify({
-        playingAt: 0,
-        index: 0,
-    });
+
+    if (confirm('play from last saved state ??')) {
+        meta = JSON.parse(localStorage.getItem(metaName));
+    }   else {
+        meta = {
+            playingAt: 0,
+            index: 0,
+        };
+    }
 
     var list = JSON.parse(list);
-    var meta = JSON.parse(meta);
     var index = 0;
     var started = false;
 
@@ -155,13 +160,12 @@
         updateListState();
     });
 
+    renderList();
     if (meta.index >=0) {
         index = meta.index;
         playSong(meta.index, meta.playingAt);
 
     } else if (list.length) {
-        // render list
-        renderList();
         playSong(0);
     }
 
