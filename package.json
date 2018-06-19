@@ -5,7 +5,7 @@
   "main": "mp3.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc mp3.ts"
+    "build": "parcel --no-hmr index.html"
   },
   "repository": {
     "type": "git",

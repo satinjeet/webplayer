@@ -1,30 +1,23 @@
-interface Song {
-    name: string;
-    loc: string;
-    hash: string;
-}
-
-interface SongList extends Array<Song>{}
+import { 
+    Song, 
+    SongList, 
+    RepeatModes
+} from "./types";
+import { player } from "./player";
 
 const itemName = "mp3::songs", 
-    metaName = "mp3::songs::meta",
-    repeatModes: any = {
-        one: 'mode_one',
-        all: 'mode_all',
-        off: 'mode_off',
-    };
+    metaName = "mp3::songs::meta";
 const localStorageList = localStorage.getItem(itemName) || "[]";
 
 let meta;
-let repeatLike = repeatModes.all;
+let repeatLike = RepeatModes.ALL;
 let list: SongList = <SongList>JSON.parse(localStorageList);
 let index: number = 0;
 let started: boolean = false;
 let addButton: HTMLButtonElement = <HTMLButtonElement> document.querySelector('[add]');
 var repeatButton = document.querySelector('[repeat]');
 var save = document.querySelector('[save]');
-var player = document.querySelector('audio');
-// player.crossOrigin = "*";
+
 var playList = document.querySelector('ol');
 const load: HTMLInputElement = <HTMLInputElement> document.getElementById('add-playlist');
 var fr: FileReader = new FileReader;
@@ -37,7 +30,6 @@ var canvasCtx = canvas.getContext('2d');
 
 audioSrc.connect(analyser);
 audioSrc.connect(ctx.destination);
-// analyser.connect(ctx.destination);
 
 function renderFrame() {
     requestAnimationFrame(renderFrame);
@@ -59,16 +51,6 @@ if (list.length > 0 /*&& confirm('play from last saved state ??')*/) {
         playingAt: 0,
         index: 0,
     };
-}
-
-function shuffle(a) {
-    var j, x, i;
-    for (i = a.length; i; i -= 1) {
-        j = Math.floor(Math.random() * i);
-        x = a[i - 1];
-        a[i - 1] = a[j];
-        a[j] = x;
-    }
 }
 
 function renderList()
@@ -111,10 +93,10 @@ function playSong(listIndex, playingAt: number = 0) {
     if (listIndex >= 0) {
         index = listIndex;
     } else {
-        if (repeatLike == repeatModes.one) {
+        if (repeatLike == RepeatModes.ONE) {
             // dont do anything.
             // 
-        } else if (repeatLike == repeatModes.all) {
+        } else if (repeatLike == RepeatModes.ALL) {
             index++;
             if (!list[index]) {
                 index = 0;
