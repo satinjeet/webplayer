@@ -1,0 +1,25 @@
+{
+  "name": "mp3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "mp3.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc mp3.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/satinjeet/webplayer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/satinjeet/webplayer/issues"
+  },
+  "homepage": "https://github.com/satinjeet/webplayer#readme",
+  "devDependencies": {
+    "http-server": "^0.11.1",
+    "parcel": "^1.9.2",
+    "typescript": "^2.9.2"
+  }
+}
