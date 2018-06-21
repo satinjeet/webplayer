@@ -4,6 +4,10 @@ import {
     RepeatModes
 } from "./types";
 import { player } from "./player";
+import { renderVisuals } from "./canvas";
+import { Playlist } from "./playlist";
+
+const playlist = Playlist.getInstance();
 
 const itemName = "mp3::songs", 
     metaName = "mp3::songs::meta";
@@ -24,24 +28,12 @@ var fr: FileReader = new FileReader;
 var ctx = new AudioContext();
 var audioSrc = ctx.createMediaElementSource(player);
 var analyser = ctx.createAnalyser();
-var frequencyData = new Uint8Array(analyser.frequencyBinCount);
-var canvas = <HTMLCanvasElement> document.getElementById("mycanvas");
-var canvasCtx = canvas.getContext('2d');
+
 
 audioSrc.connect(analyser);
 audioSrc.connect(ctx.destination);
 
-function renderFrame() {
-    requestAnimationFrame(renderFrame);
-    // update data in frequencyData
-    analyser.getByteFrequencyData(frequencyData);
-    // render frame based on values in frequencyData
-    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < frequencyData.length; i = i + 3) {
-        let rect = canvasCtx.fillRect(i/3, canvas.height, 1, -frequencyData[i]);
-    }
-}
-renderFrame();
+renderVisuals(analyser);
 
 
 if (list.length > 0 /*&& confirm('play from last saved state ??')*/) {
