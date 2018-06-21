@@ -5,7 +5,8 @@
   "main": "mp3.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "parcel --no-hmr index.html"
+    "build": "parcel --no-hmr index.html",
+    "serve": "http-server --cors ."
   },
   "repository": {
     "type": "git",
@@ -18,16 +19,14 @@
   },
   "homepage": "https://github.com/satinjeet/webplayer#readme",
   "devDependencies": {
-    "@types/rx": "^4.1.1",
     "bower": "^1.8.4",
     "http-server": "^0.11.1",
     "parcel": "^1.9.2",
+    "rxjs-compat": "^6.2.1",
     "typescript": "^2.9.2"
   },
   "dependencies": {
     "font-awesome": "^4.5.0",
-    "ink": "https://github.com/sapo/Ink.git",
-    "rx": "^4.1.0",
     "rxjs": "^6.2.1"
   }
 }

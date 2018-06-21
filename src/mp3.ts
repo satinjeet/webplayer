@@ -5,9 +5,8 @@ import {
 } from "./types";
 import { player } from "./player";
 import { renderVisuals } from "./canvas";
-import { Playlist } from "./playlist";
-
-const playlist = Playlist.getInstance();
+import { Playlist, IPLMessage } from "./playlist";
+import {filter} from "rxjs/internal/operators";
 
 const itemName = "mp3::songs", 
     metaName = "mp3::songs::meta";
@@ -19,10 +18,10 @@ let list: SongList = <SongList>JSON.parse(localStorageList);
 let index: number = 0;
 let started: boolean = false;
 let addButton: HTMLButtonElement = <HTMLButtonElement> document.querySelector('[add]');
-var repeatButton = document.querySelector('[repeat]');
-var save = document.querySelector('[save]');
+var repeatButton = <HTMLButtonElement> document.querySelector('[repeat]');
+var save = <HTMLButtonElement> document.querySelector('[save]');
 
-var playList = document.querySelector('ol');
+var playList = <HTMLOListElement> document.querySelector('ol');
 const load: HTMLInputElement = <HTMLInputElement> document.getElementById('add-playlist');
 var fr: FileReader = new FileReader;
 var ctx = new AudioContext();
@@ -35,46 +34,33 @@ audioSrc.connect(ctx.destination);
 
 renderVisuals(analyser);
 
-
-if (list.length > 0 /*&& confirm('play from last saved state ??')*/) {
-    meta = JSON.parse(localStorage.getItem(metaName));
-}   else {
-    meta = {
-        playingAt: 0,
-        index: 0,
-    };
-}
+const pl = new Playlist();
+pl.Stream.pipe(filter((message:IPLMessage) => message.message === 'songDeleted')).subscribe(() => {
+    renderList();
+})
 
 function renderList()
 {
     playList.innerHTML = '';
-    for (let i: number = 0; i < list.length; i++) {
+    for (let i: number = 0; i < pl.List.length; i++) {
         var li = document.createElement('li');
         
-        li.innerHTML = list[i].name + ' <a class="fa fa-trash"></a>';
-        li.setAttribute('list-index', i.toString());
-
+        li.innerHTML = pl.List[i].name + ' <a class="fa fa-trash"></a>';
         playList.appendChild(li);
 
-        li.addEventListener('click', function() {
-            playSong(this.getAttribute('list-index'));
-        });
-        li.children[0].addEventListener('click', function() {
-            removeSong(this.parentElement.getAttribute('list-index'));
-        });
+        li.addEventListener('click', ((_index) => {
+            return (event: MouseEvent) => {
+                playSong(_index);
+            }
+        })(i));
+        li.children[0].addEventListener('click', ((_index) => {
+            return (event) => {
+                pl.removeSong(_index);
+            }
+        })(i));
     }
 }
 
-function removeSong(index) {
-    if (index >= 0) {
-        list.splice(index,1);
-    } else {
-        return;
-    }
-    renderList();
-    updateListState();
-    localStorage.setItem(itemName, JSON.stringify(list));
-}
 
 function playSong(listIndex, playingAt: number = 0) {
 
@@ -165,7 +151,9 @@ save.addEventListener('click', function() {
 });
 
 load.addEventListener('change', function() {
-    fr.readAsText(load.files[0]);
+    if (load.files && load.files[0]) {
+        fr.readAsText(load.files[0]);
+    }
 });
 
 fr.onload = function() {
@@ -180,17 +168,17 @@ fr.onload = function() {
 
 rehashList();
 renderList();
-if (meta.index >=0 && list.length) {
-    index = meta.index;
-    playSong(meta.index, meta.playingAt);
+if (pl.Meta.index >=0 && pl.List.length) {
+    index = pl.Meta.index;
+    playSong(pl.Meta.index, pl.Meta.playingAt);
 
-} else if (list.length) {
+} else if (pl.List.length) {
     playSong(0);
 }
 
 setInterval(function() {
-    meta.playingAt = player.currentTime;
-    meta.index = index;
+    pl.Meta.playingAt = player.currentTime;
+    pl.Meta.index = index;
 
-    localStorage.setItem(metaName, JSON.stringify(meta));
+    localStorage.setItem(metaName, JSON.stringify(pl.Meta));
 }, 1000);
