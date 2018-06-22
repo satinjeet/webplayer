@@ -6,7 +6,8 @@ import {
 import { player } from "./player";
 import { renderVisuals } from "./canvas";
 import { Playlist, IPLMessage } from "./playlist";
-import {filter} from "rxjs/internal/operators";
+import { filter } from "rxjs/internal/operators";
+import {PlayListView} from "./playlist.view";
 
 const itemName = "mp3::songs", 
     metaName = "mp3::songs::meta";
@@ -21,7 +22,6 @@ let addButton: HTMLButtonElement = <HTMLButtonElement> document.querySelector('[
 var repeatButton = <HTMLButtonElement> document.querySelector('[repeat]');
 var save = <HTMLButtonElement> document.querySelector('[save]');
 
-var playList = <HTMLOListElement> document.querySelector('ol');
 const load: HTMLInputElement = <HTMLInputElement> document.getElementById('add-playlist');
 var fr: FileReader = new FileReader;
 var ctx = new AudioContext();
@@ -35,31 +35,9 @@ audioSrc.connect(ctx.destination);
 renderVisuals(analyser);
 
 const pl = new Playlist();
-pl.Stream.pipe(filter((message:IPLMessage) => message.message === 'songDeleted')).subscribe(() => {
-    renderList();
-})
+pl.Stream.subscribe((message: IPLMessage) => console.log(message));
 
-function renderList()
-{
-    playList.innerHTML = '';
-    for (let i: number = 0; i < pl.List.length; i++) {
-        var li = document.createElement('li');
-        
-        li.innerHTML = pl.List[i].name + ' <a class="fa fa-trash"></a>';
-        playList.appendChild(li);
-
-        li.addEventListener('click', ((_index) => {
-            return (event: MouseEvent) => {
-                playSong(_index);
-            }
-        })(i));
-        li.children[0].addEventListener('click', ((_index) => {
-            return (event) => {
-                pl.removeSong(_index);
-            }
-        })(i));
-    }
-}
+const lisView = new PlayListView(pl);
 
 
 function playSong(listIndex, playingAt: number = 0) {
@@ -135,14 +113,12 @@ addButton.addEventListener('click', function() {
     if (player.src == '') {
         playSong(0);
     }
-    renderList();
+
     updateListState();
 });
 
 repeatButton.addEventListener('click', function() {
-    renderList();
     updateListState();
-
 });
 
 save.addEventListener('click', function() {
@@ -162,12 +138,10 @@ fr.onload = function() {
     list = content;
     index = 0;
     playSong(0);
-    renderList();
     updateListState();
 }
 
 rehashList();
-renderList();
 if (pl.Meta.index >=0 && pl.List.length) {
     index = pl.Meta.index;
     playSong(pl.Meta.index, pl.Meta.playingAt);
